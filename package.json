@@ -1,0 +1,20 @@
+{
+  "name": "",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "prestart": "npm run build",
+    "start": "func start",
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {
+    "@opentelemetry/node": "^0.24.0",
+    "axios": "^0.27.2"
+  },
+  "devDependencies": {
+    "@azure/functions": "^3.0.0",
+    "typescript": "^4.0.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "bindings": [
+    {
+      "authLevel": "Anonymous",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": [
+        "get",
+        "post"
+      ]
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    }
+  ],
+  // /Users/pranjalbhadu/Documents/optum/user-dashboard/showDashboard/index.ts
+  "scriptFile": "../dist/showDashboard/index.js"
+}
