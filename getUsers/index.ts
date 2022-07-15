@@ -1,6 +1,8 @@
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-import {TelemetryProvider} from "../Telemetry.Instrumentation/TelemetryProvider"
+// import {TelemetryProvider} from "../Telemetry.Instrumentation/TelemetryProvider"
+import {TelemetryProvider} from 'telemetry-wrapper'
 const axios = require("axios").default;
+TelemetryProvider.setConnectionString("InstrumentationKey=e42c6ebf-ab37-42b5-9993-6ea44d52f6bf;IngestionEndpoint=https://centralindia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://centralindia.livediagnostics.monitor.azure.com/")
 
 const tp = new TelemetryProvider("http app", "0.1.0");
 const tracer = TelemetryProvider.getTelemetryTracer()
