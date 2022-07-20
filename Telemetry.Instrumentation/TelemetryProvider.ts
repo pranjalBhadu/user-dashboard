@@ -9,13 +9,17 @@ const { W3CTraceContextPropagator} = require("@opentelemetry/core");
 export class TelemetryProvider{
     private static TelemetryResource: Resource;
     private static Provider: NodeTracerProvider;
-    // private static TelemetryExporter: AzureMonitorTraceExporter = new AzureMonitorTraceExporter({
-    //     connectionString: TelemetryConstants.ConnectionString
-    // });
-    private static TelemetryExporter = new ConsoleSpanExporter();
-    private static TelemetryProcessor: BatchSpanProcessor = new BatchSpanProcessor(TelemetryProvider.TelemetryExporter);
+    // public static ConnectionString: string;
+    private static TelemetryExporter: AzureMonitorTraceExporter;
+    // private static TelemetryExporter = new ConsoleSpanExporter();
+    private static TelemetryProcessor: BatchSpanProcessor;
     public static TelemetryTracer: Tracer;
-    constructor(TracerName: string, TracerVersion: string){
+    constructor(TracerName: string, TracerVersion: string, ConnectionString: string){
+        TelemetryProvider.TelemetryExporter = new AzureMonitorTraceExporter({
+            connectionString: ConnectionString
+        });
+
+        TelemetryProvider.TelemetryProcessor = new BatchSpanProcessor(TelemetryProvider.TelemetryExporter);
         TelemetryProvider.TelemetryResource =
         Resource.default().merge(
                 new Resource({
@@ -37,26 +41,27 @@ export class TelemetryProvider{
         return TelemetryProvider.TelemetryTracer
     }
 
-    public static startTracing(spanName: string, activeSpan: Span = undefined, kind: number = 0, attributes: Object = null): Span{
+    public static startTracing(spanName: string, activeSpan: Span|undefined = undefined, kind: number = 0, attributes: Object|null = null): Span{
+        console.log("start of span")
         const spanKind: SpanKind = TelemetryProvider.getSpanKind(kind)
-        // const currentSpan: Span = TelemetryProvider.getCurrentSpan()
-        // if(currentSpan!=undefined)
-        // {const id = currentSpan.spanContext().traceId
-        // console.log("id: ", id)}
-        // if(currentSpan == undefined){
-        //     console.log("undefined")
-        // }
-        // const ctx: Context = trace.setSpan(context.active(), currentSpan);
-        const ctx = trace.setSpan(context.active(), activeSpan);
-        const span: Span = TelemetryProvider.TelemetryTracer.startSpan(spanName, {kind: spanKind}, ctx)
-        if(attributes != null){
+        let span: Span;
+        if(activeSpan!=undefined){
+            const ctx = trace.setSpan(context.active(), activeSpan);
+            span = TelemetryProvider.TelemetryTracer.startSpan(spanName, {kind: spanKind}, ctx)
+        }else{
+            span = TelemetryProvider.TelemetryTracer.startSpan(spanName, {kind: spanKind})
+        }
+        if(attributes != undefined){
             this.setSpanTags(span, attributes)
         }
+        console.log("span context: ")
+        console.log(span.spanContext)
         return span
     }
 
-    public static setParentSpan(span: Span): Context {
-        return trace.setSpan(context.active(), span)
+    public static startTracingWith(spanName: string, func: () => void){
+        const span: Span = TelemetryProvider.TelemetryTracer.startSpan(spanName);
+        context.with(trace.setSpan(context.active(), span), func)
     }
 
     public static getSpanKind(kind: number): SpanKind {
@@ -67,9 +72,9 @@ export class TelemetryProvider{
         return SpanKind.CONSUMER
     }
 
-    public static getCurrentSpan(): Span{
-        return trace.getSpan(context.active());
-    }
+    // public static getSpanId(span): string | undefined{
+    //     return trace.getSpan(context.active());
+    // }
 
     public static setSpanTags(span: Span, attributes: Object): void{
         if(attributes == null){
